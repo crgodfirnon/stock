@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/news_item">
+    
+    <data>
+        <variable
+            name="article"
+            type="com.example.stock.domain.Article" />
+        
+        <variable
+            name="articleCallBack"
+            type="com.example.stock.ui.StockMainFragment.ArticleClick" />
+        
+    </data>
+
+    <androidx.cardview.widget.CardView
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        app:cardElevation="5dp"
+        app:cardCornerRadius="10dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="@{() -> articleCallBack.onClick(article)}">
+
+            <ImageView
+                android:id="@+id/article_picture"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="false"
+                android:scaleType="fitCenter"
+                app:imageUrl="@{article.imageUrl}"
+                app:layout_constrainedHeight="false"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@android:drawable/ic_menu_mapmode" />
+
+            <TextView
+                android:id="@+id/article_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="8dp"
+                android:layout_marginVertical="4dp"
+                android:text="@{article.title}"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="@+id/article_picture"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="@+id/article_picture"
+                app:layout_constraintTop_toBottomOf="@+id/article_picture"
+                tools:text="Article Title" />
+
+            <TextView
+                android:id="@+id/article_description"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@{article.description}"
+                app:layout_constraintEnd_toEndOf="@+id/article_title"
+                app:layout_constraintStart_toStartOf="@+id/article_title"
+                app:layout_constraintTop_toBottomOf="@+id/article_title"
+                tools:text="Article Description" />
+
+            <TextView
+                android:id="@+id/article_source_time"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="8dp"
+                android:layout_marginEnd="8dp"
+                android:textSize="10sp"
+                android:text="@{article.getArticleStamp()}"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="@+id/article_description"
+                app:layout_constraintTop_toBottomOf="@+id/article_description" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.cardview.widget.CardView>
+
+</layout>
+
