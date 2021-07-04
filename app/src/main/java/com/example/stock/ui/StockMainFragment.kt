@@ -55,8 +55,6 @@ class StockMainFragment : Fragment() {
         viewModelAdapter = NewsArticleAdapter(ArticleClick {
             viewModel.onArticleClicked(it)
         })
-        viewModelAdapter?.submitList( viewModel.articles.value )
-
         binding.newsRecycler.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = viewModelAdapter
@@ -67,12 +65,6 @@ class StockMainFragment : Fragment() {
                 var intent = Intent(Intent.ACTION_VIEW, Uri.parse(article.url))
                 startActivity(intent)
                 viewModel.navigateToArticleFinished()
-            }
-        })
-
-        viewModel.articles.observe(viewLifecycleOwner, Observer {
-            it?.let {
-                viewModelAdapter?.submitList(it)
             }
         })
 
