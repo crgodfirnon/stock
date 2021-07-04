@@ -6,6 +6,8 @@ import android.widget.TextView
 import androidx.core.net.toUri
 import androidx.databinding.BindingAdapter
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
+import com.example.stock.R
 import com.example.stock.domain.Article
 import java.text.SimpleDateFormat
 import java.util.*
@@ -18,5 +20,10 @@ fun bindImage(imgView: ImageView, imgUrl: String?) {
         Glide.with(imgView.context)
             .load(imgUri)
             .into(imgView)
+            .apply {
+                RequestOptions()
+                    .placeholder(R.drawable.loading_animation)
+                    .error(R.drawable.ic_broken_image)
+            }
     }
 }

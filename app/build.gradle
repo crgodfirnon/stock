@@ -39,8 +39,11 @@ android {
 
 dependencies {
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    ext.nav_version="2.3.5"
-    ext.version_glide="4.12.0"
+    def nav_version = "2.3.5"
+    def version_glide = "4.12.0"
+    def room_version = "2.3.0"
+    def retrofit_version = "2.9.0"
+    def moshi_version = "1.12.0"
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'androidx.core:core-ktx:1.5.0'
@@ -66,4 +69,23 @@ dependencies {
 
     // glide for showing images
     implementation "com.github.bumptech.glide:glide:$version_glide"
+
+    // room database
+    implementation "androidx.room:room-runtime:$room_version"
+    annotationProcessor "androidx.room:room-compiler:$room_version"
+
+    // retro fit
+    implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
+    implementation "com.squareup.retrofit2:converter-moshi:$retrofit_version"
+
+    // okHTTP
+    implementation(platform("com.squareup.okhttp3:okhttp-bom:4.9.0"))
+    implementation("com.squareup.okhttp3:okhttp")
+
+    // moshi
+    implementation "com.squareup.moshi:moshi:$moshi_version"
+    implementation "com.squareup.moshi:moshi-kotlin:$moshi_version"
+
+    // timber
+    implementation 'com.jakewharton.timber:timber:4.7.1'
 }

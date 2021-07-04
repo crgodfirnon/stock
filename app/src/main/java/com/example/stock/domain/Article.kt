@@ -14,10 +14,10 @@ data class Article(
                 val title: String,
                 val description: String,
                 val url: String,
-                val imageUrl: String)
+                val imageUrl: String?)
 {
     fun getArticleStamp() : String {
-        var date: Date = inputFormat.parse(time)
+        val date: Date = inputFormat.parse(time)
         val niceDateStr: String = DateUtils.getRelativeTimeSpanString(
             date.time,
             Calendar.getInstance().timeInMillis,

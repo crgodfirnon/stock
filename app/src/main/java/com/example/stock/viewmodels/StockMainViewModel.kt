@@ -2,7 +2,14 @@ package com.example.stock.viewmodels
 
 import android.app.Application
 import androidx.lifecycle.*
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.stock.domain.Article
+import com.example.stock.network.Network
+import com.example.stock.network.asDomainModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.lang.IllegalArgumentException
 
 class StockMainViewModel(application: Application) : AndroidViewModel(application) {
@@ -17,7 +24,31 @@ class StockMainViewModel(application: Application) : AndroidViewModel(applicatio
 
 
     init {
-        _articles.value = getDummyArticles()
+        viewModelScope.launch {
+            refreshArticles()
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        viewModelScope.cancel()
+    }
+
+    private suspend fun refreshArticles() {
+        withContext(Dispatchers.IO) {
+            try {
+                val articlesResponse = Network.articles.getArticles()
+
+                if (articlesResponse.isSuccessful) {
+                    _articles.postValue(articlesResponse.body()?.asDomainModel()?.toList())
+                } else {
+                    _articles.postValue(emptyList())
+                }
+            }
+            catch(e: Exception){
+
+            }
+        }
     }
 
     fun onArticleClicked(article: Article){

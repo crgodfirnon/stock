@@ -70,6 +70,12 @@ class StockMainFragment : Fragment() {
             }
         })
 
+        viewModel.articles.observe(viewLifecycleOwner, Observer {
+            it?.let {
+                viewModelAdapter?.submitList(it)
+            }
+        })
+
         return binding.root
     }
 
