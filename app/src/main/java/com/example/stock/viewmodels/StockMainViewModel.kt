@@ -2,7 +2,6 @@ package com.example.stock.viewmodels
 
 import android.app.Application
 import androidx.lifecycle.*
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.stock.domain.Article
 import com.example.stock.network.Network
 import com.example.stock.network.asDomainModel
@@ -37,7 +36,7 @@ class StockMainViewModel(application: Application) : AndroidViewModel(applicatio
     private suspend fun refreshArticles() {
         withContext(Dispatchers.IO) {
             try {
-                val articlesResponse = Network.articles.getArticles()
+                val articlesResponse = Network.articles.getArticles(query = "stock market")
 
                 if (articlesResponse.isSuccessful) {
                     _articles.postValue(articlesResponse.body()?.asDomainModel()?.toList())

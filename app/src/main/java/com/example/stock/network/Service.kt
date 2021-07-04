@@ -22,11 +22,20 @@ private val moshi = Moshi.Builder()
 
 interface ArticleService {
     @GET("top-headlines")
-    suspend fun getArticles(
+    suspend fun getTopHeadlines(
         @Query("country") countryCode: String = "us",
-        //@Query("q") query: String = "stock market",
         @Query("pageSize") pageSize: Int = 20)
             : retrofit2.Response<ArticleResponseContainer>
+
+    @GET("everything")
+    suspend fun getArticles(
+        @Query("q") query: String,
+        @Query("language") language: String = "en",
+        @Query("pageSize") pageSize: Int = 20,
+        @Query("page") page: Int = 1,
+        @Query("sortBy") sortBy: String = "relevancy"
+    )
+        : retrofit2.Response<ArticleResponseContainer>
 }
 
 private class ApiKeyInterceptor(val api_key: String) : Interceptor{
