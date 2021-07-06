@@ -33,7 +33,7 @@ interface ArticleService {
         @Query("language") language: String = "en",
         @Query("pageSize") pageSize: Int = 20,
         @Query("page") page: Int = 1,
-        @Query("sortBy") sortBy: String = "relevancy"
+        @Query("sortBy") sortBy: String = "publishedAt"
     )
         : retrofit2.Response<ArticleResponseContainer>
 }

@@ -40,8 +40,7 @@
                 app:layout_constrainedHeight="false"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@android:drawable/ic_menu_mapmode" />
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:id="@+id/article_title"
@@ -63,7 +62,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
-                android:maxLines="3"
+                android:maxLines="2"
                 android:text="@{article.description}"
                 app:layout_constraintEnd_toEndOf="@+id/article_title"
                 app:layout_constraintStart_toStartOf="@+id/article_title"

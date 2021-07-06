@@ -24,11 +24,10 @@
             android:clipToPadding="false"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:listitem="@layout/news_item"
-            app:listData="@{viewModel.articles}"/>
+            app:layout_constraintTop_toBottomOf="@+id/sp500"
+            app:listData="@{viewModel.articles}"
+            tools:listitem="@layout/news_item" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </layout>
