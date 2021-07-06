@@ -13,6 +13,12 @@ import java.lang.IllegalArgumentException
 
 class StockMainViewModel(application: Application) : AndroidViewModel(application) {
 
+    enum class ArticleApiStatus { LOADING, ERROR, DONE }
+
+    private val _articleApiStatus = MutableLiveData<ArticleApiStatus>()
+    val articleApiStatus: LiveData<ArticleApiStatus>
+        get() = _articleApiStatus
+
     private val _articles: MutableLiveData<List<Article>> = MutableLiveData()
     val articles: LiveData<List<Article>>
         get() = _articles
@@ -36,16 +42,14 @@ class StockMainViewModel(application: Application) : AndroidViewModel(applicatio
     private suspend fun refreshArticles() {
         withContext(Dispatchers.IO) {
             try {
+                _articleApiStatus.postValue(ArticleApiStatus.LOADING)
                 val articlesResponse = Network.articles.getArticles(query = "stock market")
-
-                if (articlesResponse.isSuccessful) {
-                    _articles.postValue(articlesResponse.body()?.asDomainModel()?.toList())
-                } else {
-                    _articles.postValue(emptyList())
-                }
+                _articleApiStatus.postValue(ArticleApiStatus.DONE)
+                _articles.postValue(articlesResponse.body()?.asDomainModel()?.toList())
             }
             catch(e: Exception){
-
+                _articleApiStatus.postValue(ArticleApiStatus.ERROR)
+                _articles.postValue(emptyList())
             }
         }
     }
