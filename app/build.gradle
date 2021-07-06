@@ -88,4 +88,7 @@ dependencies {
 
     // timber
     implementation 'com.jakewharton.timber:timber:4.7.1'
+
+    // robinHood ticker
+    implementation 'com.robinhood.ticker:ticker:2.0.2'
 }

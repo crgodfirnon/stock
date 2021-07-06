@@ -15,6 +15,17 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <com.robinhood.ticker.TickerView
+            android:id="@+id/sp500"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            app:ticker_animationDuration="1500"
+            app:ticker_defaultPreferredScrollingDirection="any"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
             android:layout_width="wrap_content"
