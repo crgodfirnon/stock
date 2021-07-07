@@ -13,6 +13,7 @@ import retrofit2.http.Query
 
 private object ApiKeys {
     const val ARTICLE_API_KEY = "3961d4dd8d4b49fc85a6cfc088c1e9bb"
+    const val TICKER_API_KEY = "c3iet4qad3ib8lb84mcg"
 }
 
 private val moshi = Moshi.Builder()
@@ -38,10 +39,17 @@ interface ArticleService {
         : retrofit2.Response<ArticleResponseContainer>
 }
 
-private class ApiKeyInterceptor(val api_key: String) : Interceptor{
+interface TickerService {
+    @GET("quote")
+    suspend fun getQuote(
+        @Query("symbol") symbol: String)
+        : retrofit2.Response<NetworkQuote>
+}
+
+private class ApiKeyInterceptor(val api_key: String, val queryName: String) : Interceptor{
     override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
         var original = chain.request()
-        val url = original.url.newBuilder().addQueryParameter("apiKey", api_key).build()
+        val url = original.url.newBuilder().addQueryParameter(queryName, api_key).build()
         original = original.newBuilder().url(url).build()
         return chain.proceed(original)
     }
@@ -50,7 +58,12 @@ private class ApiKeyInterceptor(val api_key: String) : Interceptor{
 
 private val articleOkHttpClient = OkHttpClient()
     .newBuilder()
-    .addInterceptor(ApiKeyInterceptor(ApiKeys.ARTICLE_API_KEY))
+    .addInterceptor(ApiKeyInterceptor(ApiKeys.ARTICLE_API_KEY, "apiKey"))
+    .build()
+
+private val tickerOkHttpClient = OkHttpClient()
+    .newBuilder()
+    .addInterceptor(ApiKeyInterceptor(ApiKeys.TICKER_API_KEY, "token"))
     .build()
 
 object Network {
@@ -60,5 +73,12 @@ object Network {
         .addConverterFactory(MoshiConverterFactory.create(moshi))
         .build()
 
+    private val tickerRetroFit = Retrofit.Builder()
+        .client(tickerOkHttpClient)
+        .baseUrl("https://finnhub.io/api/v1/")
+        .addConverterFactory(MoshiConverterFactory.create(moshi))
+        .build()
+
     val articles: ArticleService = articleRetrofit.create(ArticleService::class.java)
+    val tickers: TickerService = tickerRetroFit.create(TickerService::class.java)
 }

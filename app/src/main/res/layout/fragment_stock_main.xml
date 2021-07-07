@@ -17,6 +17,7 @@
 
 
         <ImageView
+            android:id="@+id/imageView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
@@ -33,14 +34,40 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
             android:clipToPadding="false"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/sp500"
+            app:layout_constraintTop_toBottomOf="@+id/symbolSearchTextView"
             app:listData="@{viewModel.articles}"
             tools:listitem="@layout/news_item" />
+
+        <AutoCompleteTextView
+            android:id="@+id/symbolSearchTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="8dp"
+            android:hint="Enter Ticker Symbol"
+            app:layout_constraintEnd_toStartOf="@+id/symbolSearchButton"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/symbolSearchButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:text="@android:string/search_go"
+            app:layout_constraintBottom_toBottomOf="@+id/symbolSearchTextView"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/symbolSearchTextView" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </layout>

@@ -9,5 +9,18 @@
         android:id="@+id/stockMainFragment"
         android:name="com.example.stock.ui.StockMainFragment"
         android:label="fragment_stock_main"
-        tools:layout="@layout/fragment_stock_main" />
+        tools:layout="@layout/fragment_stock_main" >
+        <action
+            android:id="@+id/action_stockMainFragment_to_stockSymbolFragment"
+            app:destination="@id/stockSymbolFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/stockSymbolFragment"
+        android:name="com.example.stock.ui.StockSymbolFragment"
+        android:label="fragment_stock_symbol"
+        tools:layout="@layout/fragment_stock_symbol" >
+        <argument
+            android:name="query"
+            app:argType="string" />
+    </fragment>
 </navigation>

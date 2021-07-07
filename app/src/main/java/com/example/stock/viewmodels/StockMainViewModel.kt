@@ -3,6 +3,7 @@ package com.example.stock.viewmodels
 import android.app.Application
 import androidx.lifecycle.*
 import com.example.stock.domain.Article
+import com.example.stock.domain.Ticker
 import com.example.stock.network.Network
 import com.example.stock.network.asDomainModel
 import kotlinx.coroutines.Dispatchers
@@ -27,16 +28,24 @@ class StockMainViewModel(application: Application) : AndroidViewModel(applicatio
     val navigateToArticleEvent : LiveData<Article?>
         get() = _navigateToArticleEvent
 
+    private val _searchButtonEvent: MutableLiveData<Boolean> = MutableLiveData()
+    val searchButtonEvent: LiveData<Boolean>
+        get() = _searchButtonEvent
 
     init {
+
         viewModelScope.launch {
-            refreshArticles()
+            //refreshArticles()
         }
     }
 
     override fun onCleared() {
         super.onCleared()
         viewModelScope.cancel()
+    }
+
+    fun searchButtonEventComplete() {
+        _searchButtonEvent.value = false
     }
 
     private suspend fun refreshArticles() {

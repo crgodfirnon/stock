@@ -1,6 +1,8 @@
 package com.example.stock.network
 
 import com.example.stock.domain.Article
+import com.example.stock.domain.Ticker
+import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
@@ -38,4 +40,18 @@ fun ArticleResponseContainer.asDomainModel() : Array<Article> {
             url = it.url ?: "",
             imageUrl = it.urlToImage)
     }.toTypedArray()
+}
+
+@JsonClass(generateAdapter = true)
+data class NetworkQuote (
+    val c: Double,
+    val h: Double,
+    val l: Double,
+    val o: Double,
+    val pc: Double,
+    val t: Int
+        )
+
+fun NetworkQuote.asDomainModel(symbol: String) : Ticker {
+    return Ticker(symbol, c)
 }
