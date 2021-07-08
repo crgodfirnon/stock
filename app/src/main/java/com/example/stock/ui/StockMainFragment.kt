@@ -7,9 +7,8 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.OvershootInterpolator
+import android.widget.Toast
 import androidx.annotation.LayoutRes
-import androidx.core.net.toUri
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -23,7 +22,6 @@ import com.example.stock.databinding.FragmentStockMainBinding
 import com.example.stock.databinding.NewsItemBinding
 import com.example.stock.domain.Article
 import com.example.stock.viewmodels.StockMainViewModel
-import com.robinhood.ticker.TickerUtils
 
 
 class StockMainFragment : Fragment() {
@@ -44,7 +42,7 @@ class StockMainFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Setting up the binding
         val binding: FragmentStockMainBinding = DataBindingUtil.inflate(
             inflater,
@@ -65,9 +63,24 @@ class StockMainFragment : Fragment() {
 
         viewModel.navigateToArticleEvent.observe( viewLifecycleOwner, Observer { article ->
             article?.let {
-                var intent = Intent(Intent.ACTION_VIEW, Uri.parse(article.url))
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(article.url))
                 startActivity(intent)
-                viewModel.navigateToArticleFinished()
+                viewModel.navigateToArticleComplete()
+            }
+        })
+
+        viewModel.tickerNotFoundEvent.observe( viewLifecycleOwner, Observer {
+            it?.let{
+                Toast.makeText(context, viewModel.tickerNotFoundEvent.value + " Not Found", Toast.LENGTH_LONG).show()
+                viewModel.tickerNotFoundEventComplete()
+            }
+        })
+        viewModel.navigateToTickerEvent.observe( viewLifecycleOwner, Observer {
+            it?.let{
+                findNavController().navigate(StockMainFragmentDirections.actionStockMainFragmentToStockSymbolFragment(
+                    viewModel.navigateToTickerEvent.value!!
+                ))
+                viewModel.navigateToTickerComplete()
             }
         })
 

@@ -43,7 +43,7 @@ interface TickerService {
     @GET("quote")
     suspend fun getQuote(
         @Query("symbol") symbol: String)
-        : retrofit2.Response<NetworkQuote>
+        : retrofit2.Response<NetworkTickerQuote>
 }
 
 private class ApiKeyInterceptor(val api_key: String, val queryName: String) : Interceptor{

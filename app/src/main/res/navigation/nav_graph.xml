@@ -20,7 +20,7 @@
         android:label="fragment_stock_symbol"
         tools:layout="@layout/fragment_stock_symbol" >
         <argument
-            android:name="query"
+            android:name="tickerName"
             app:argType="string" />
     </fragment>
 </navigation>
