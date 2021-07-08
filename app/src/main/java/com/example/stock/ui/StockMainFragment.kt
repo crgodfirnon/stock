@@ -33,8 +33,6 @@ class StockMainFragment : Fragment() {
         ViewModelProvider(this, StockMainViewModel.Factory(activity.application)).get(StockMainViewModel::class.java)
     }
 
-    private var viewModelAdapter: NewsArticleAdapter? = null
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
     }
@@ -52,14 +50,6 @@ class StockMainFragment : Fragment() {
 
         binding.lifecycleOwner = this
         binding.viewModel = viewModel
-
-        viewModelAdapter = NewsArticleAdapter(ArticleClick {
-            viewModel.onArticleClicked(it)
-        })
-        binding.newsRecycler.apply {
-            layoutManager = LinearLayoutManager(context)
-            adapter = viewModelAdapter
-        }
 
         viewModel.navigateToArticleEvent.observe( viewLifecycleOwner, Observer { article ->
             article?.let {
@@ -86,52 +76,5 @@ class StockMainFragment : Fragment() {
 
         return binding.root
     }
-
-    class ArticleClick(val block: (Article) -> Unit) {
-        fun onClick(article: Article) = block(article)
-    }
-
-    class NewsArticleAdapter(val callBack: ArticleClick):
-        ListAdapter<Article, NewsViewHolder>(NewsArticleDiffCallback()) {
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NewsViewHolder {
-            val binding : NewsItemBinding = DataBindingUtil.inflate(
-                LayoutInflater.from(parent.context),
-                NewsViewHolder.LAYOUT,
-                parent,
-                false
-            )
-            return NewsViewHolder(binding)
-        }
-
-        override fun onBindViewHolder(holder: NewsViewHolder, position: Int) {
-            holder.viewDataBinding.also {
-                it.article = getItem(position)
-                it.articleCallBack = callBack
-                it.executePendingBindings()
-            }
-        }
-
-        class NewsArticleDiffCallback:
-                DiffUtil.ItemCallback<Article>() {
-            override fun areItemsTheSame(oldItem: Article, newItem: Article): Boolean {
-                return oldItem === newItem
-            }
-
-            override fun areContentsTheSame(oldItem: Article, newItem: Article): Boolean {
-                return oldItem.url == newItem.url
-            }
-
-        }
-    }
-
-    class NewsViewHolder(val viewDataBinding: NewsItemBinding) :
-        RecyclerView.ViewHolder(viewDataBinding.root) {
-        companion object {
-            @LayoutRes
-            val LAYOUT = R.layout.news_item
-        }
-    }
-
 
 }

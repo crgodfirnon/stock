@@ -9,48 +9,164 @@
             type="com.example.stock.viewmodels.StockSymbolViewModel" />
 
     </data>
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+    <!--<androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefresh"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        >-->
 
-        >
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".ui.StockSymbolFragment">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <TextView
+            android:id="@+id/tickerNameTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@{viewModel.tickerName}"
+            android:textSize="25sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="TICKER" />
+
+        <com.robinhood.ticker.TickerView
+            android:id="@+id/tickerCurrentPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@{viewModel.currentQuote.getValueString()}"
+            android:textAppearance="@style/TickerTextAppearance"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tickerNameTextView"
+            app:ticker_animateMeasurementChange="true"
+            app:ticker_animationDuration="1500"
+            app:ticker_defaultCharacterList="number"
+            app:ticker_defaultPreferredScrollingDirection="any" />
+
+        <com.github.mikephil.charting.charts.CandleStickChart
+            android:id="@+id/candleStickChart"
+            data="@{viewModel.candleStickData}"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:context=".ui.StockSymbolFragment">
+            android:layout_height="0dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:minHeight="200dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/movementText"
+            app:layout_constraintVertical_weight=".75" />
 
-            <com.robinhood.ticker.TickerView
-                android:id="@+id/tickerCurrentPrice"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="@{viewModel.currentPriceString}"
-                android:textAppearance="@style/TickerTextAppearance"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tickerNameTextView"
-                app:ticker_animateMeasurementChange="true"
-                app:ticker_animationDuration="1500"
-                app:ticker_defaultCharacterList="number"
-                app:ticker_defaultPreferredScrollingDirection="any" />
+        <TextView
+            android:id="@+id/openText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:text="Open"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/candleStickChart" />
 
-            <TextView
-                android:id="@+id/tickerNameTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="@{viewModel.tickerName}"
-                android:textSize="25sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:text="TICKER" />
+        <TextView
+            android:id="@+id/openValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@{String.valueOf(viewModel.currentQuote.open)}"
+            app:layout_constraintStart_toEndOf="@+id/openText"
+            app:layout_constraintTop_toTopOf="@+id/openText" />
+
+        <TextView
+            android:id="@+id/highText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="High"
+            app:layout_constraintStart_toStartOf="@+id/openText"
+            app:layout_constraintTop_toBottomOf="@+id/openText" />
+
+        <TextView
+            android:id="@+id/highValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{String.valueOf(viewModel.currentQuote.high)}"
+            app:layout_constraintStart_toEndOf="@+id/highText"
+            app:layout_constraintStart_toStartOf="@+id/openValue"
+            app:layout_constraintTop_toTopOf="@+id/highText" />
+
+        <TextView
+            android:id="@+id/lowText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Low"
+            app:layout_constraintStart_toStartOf="@+id/guideline2"
+            app:layout_constraintTop_toBottomOf="@+id/prevCloseText" />
+
+        <TextView
+            android:id="@+id/lowValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{String.valueOf(viewModel.currentQuote.low)}"
+            app:layout_constraintStart_toStartOf="@id/prevCloseValue"
+            app:layout_constraintTop_toTopOf="@+id/lowText" />
+
+        <TextView
+            android:id="@+id/prevCloseText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Prev Close"
+            app:layout_constraintStart_toStartOf="@+id/guideline2"
+            app:layout_constraintTop_toTopOf="@+id/openText" />
+
+        <TextView
+            android:id="@+id/prevCloseValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@{String.valueOf(viewModel.currentQuote.prevClose)}"
+            app:layout_constraintStart_toEndOf="@+id/prevCloseText"
+            app:layout_constraintTop_toTopOf="@+id/prevCloseText" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline2"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintGuide_begin="206dp"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:id="@+id/movementText"
+            stockQuote="@{viewModel.currentQuote}"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tickerCurrentPrice" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/tickerNews"
+            listData="@{viewModel.tickerArticles}"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/lowText"
+            tools:listitem="@layout/news_item" />
 
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+    <!--</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>-->
 
 </layout>

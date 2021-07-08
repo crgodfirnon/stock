@@ -13,7 +13,7 @@
         
         <variable
             name="articleCallBack"
-            type="com.example.stock.ui.StockMainFragment.ArticleClick" />
+            type="com.example.stock.ui.StockSymbolFragment.ArticleClick" />
         
     </data>
 

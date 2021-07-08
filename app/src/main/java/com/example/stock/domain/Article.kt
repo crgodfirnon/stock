@@ -17,14 +17,18 @@ data class Article(
                 val imageUrl: String?)
 {
     fun getArticleStamp() : String {
-        val date: Date = inputFormat.parse(time)
-        val niceDateStr: String = DateUtils.getRelativeTimeSpanString(
-            date.time,
-            Calendar.getInstance().timeInMillis,
-            DateUtils.MINUTE_IN_MILLIS
-        ).toString()
+        return try{
+            val date: Date = inputFormat.parse(time)
+            val niceDateStr: String = DateUtils.getRelativeTimeSpanString(
+                date.time,
+                Calendar.getInstance().timeInMillis,
+                DateUtils.MINUTE_IN_MILLIS
+            ).toString()
 
-        return "$source - $niceDateStr"
+            "$source - $niceDateStr"
+        } catch(e: Exception){
+            source
+        }
 
     }
 }

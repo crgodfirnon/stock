@@ -1,5 +1,7 @@
 package com.example.stock.ui
 
+import android.graphics.Color
+import android.graphics.Color.red
 import android.text.format.DateUtils
 import android.view.View
 import android.widget.ImageView
@@ -10,8 +12,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.example.stock.R
+import com.example.stock.R.color
 import com.example.stock.domain.Article
+import com.example.stock.domain.TickerQuote
 import com.example.stock.viewmodels.StockMainViewModel
+import com.github.mikephil.charting.charts.CandleStickChart
+import com.github.mikephil.charting.data.CandleData
+import java.lang.Math.abs
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -47,6 +54,29 @@ fun bindImage(imgView: ImageView, imgUrl: String?) {
 
 @BindingAdapter("listData")
 fun bindRecyclerView(recyclerView: RecyclerView, data: List<Article>?){
-    val adapter = recyclerView.adapter as StockMainFragment.NewsArticleAdapter
+    val adapter = recyclerView.adapter as StockSymbolFragment.NewsArticleAdapter
     adapter.submitList(data)
+}
+
+@BindingAdapter("data")
+fun bindCandleStickChart(candleStickChart: CandleStickChart, data: CandleData?){
+    candleStickChart.data = data
+    candleStickChart.invalidate()
+}
+
+@BindingAdapter("stockQuote")
+fun bindMovementString(textView: TextView, quote: TickerQuote?){
+    quote?.let{
+        val diff = quote.value - quote.prevClose
+        val percent = kotlin.math.abs(diff) / quote.prevClose * 100
+
+        if (diff < 0) {
+            textView.setTextColor(Color.rgb(0xFF, 0x00, 0x00))
+            textView.text = String.format("%.2f (%.2f%%) today", diff, percent)
+        }
+        else {
+            textView.setTextColor(Color.rgb(0x1B, 0x66, 0x3E))
+            textView.text = String.format("+%.2f (%.2f%%) today", diff, percent)
+        }
+    }
 }
