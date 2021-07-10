@@ -2,50 +2,14 @@ package com.example.stock.network
 
 import android.graphics.Color
 import android.graphics.Paint
+import com.example.stock.database.DBFollowedTickerQuote
+import com.example.stock.database.DatabaseTicker
 import com.example.stock.domain.Article
 import com.example.stock.domain.TickerQuote
 import com.github.mikephil.charting.components.YAxis
-import com.github.mikephil.charting.data.CandleData
 import com.github.mikephil.charting.data.CandleDataSet
 import com.github.mikephil.charting.data.CandleEntry
 import com.squareup.moshi.JsonClass
-
-@JsonClass(generateAdapter = true)
-data class ArticleResponseContainer(
-    val status: String,
-    val totalResults: Int,
-    val articles: List<NetworkArticle>
-)
-
-@JsonClass(generateAdapter = true)
-data class NetworkArticle(
-    val source: ArticleSource,
-    val author: String?,
-    val title: String?,
-    val description: String?,
-    val url: String?,
-    val urlToImage: String?,
-    val publishedAt: String?,
-    val content: String?
-)
-
-@JsonClass(generateAdapter = true)
-data class ArticleSource(
-    val id: String?,
-    val name: String?
-)
-
-fun ArticleResponseContainer.asDomainModel() : Array<Article> {
-    return articles.map {
-        Article(
-            source = it.source.name ?: "",
-            time = it.publishedAt ?: "",
-            description = it.description ?: "",
-            title = it.title ?: "",
-            url = it.url ?: "",
-            imageUrl = it.urlToImage)
-    }.toTypedArray()
-}
 
 @JsonClass(generateAdapter = true)
 data class NetworkTickerQuote (
@@ -69,12 +33,7 @@ data class NetworkCandleData(
 )
 
 @JsonClass(generateAdapter = true)
-data class CompanyArticleResponseContainer(
-    val articles: List<CompanyArticle>
-)
-
-@JsonClass(generateAdapter = true)
-data class CompanyArticle(
+data class NetworkCompanyArticle(
     val category: String,
     val datetime: Long,
     val headline: String,
@@ -86,8 +45,19 @@ data class CompanyArticle(
     val url: String
 )
 
-fun CompanyArticleResponseContainer.asDomainModel() : Array<Article> {
-    return articles.map{
+@JsonClass(generateAdapter = true)
+data class NetworkTicker(
+    val currency: String,
+    val description: String,
+    val displaySymbol: String,
+    val figi: String,
+    val mic: String,
+    val symbol: String,
+    val type: String
+)
+
+fun List<NetworkCompanyArticle>.asDomainModel() : List<Article> {
+    return map{
         Article(
             source = it.source,
             description = it.summary,
@@ -96,11 +66,30 @@ fun CompanyArticleResponseContainer.asDomainModel() : Array<Article> {
             imageUrl = it.image,
             time = it.datetime.toString()
         )
+    }
+}
+
+fun List<NetworkTicker>.asDatabaseModel(): Array<DatabaseTicker> {
+    return map {
+        DatabaseTicker(
+            symbol = it.symbol
+        )
     }.toTypedArray()
 }
 
 fun NetworkTickerQuote.asDomainModel(symbol: String) : TickerQuote {
     return TickerQuote(symbol, c, h, l, pc, o)
+}
+
+fun NetworkTickerQuote.asDatabaseModel(symbol: String): DBFollowedTickerQuote {
+    return  DBFollowedTickerQuote(
+        symbol = symbol,
+        value = c,
+        high = h,
+        low = l,
+        prevClose = pc,
+        open = o
+    )
 }
 
 fun NetworkCandleData.asDomainModel() : CandleDataSet {

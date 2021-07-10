@@ -87,13 +87,7 @@ class StockSymbolFragment : Fragment() {
             adapter = viewModelAdapter
         }
 
-            /*binding.swipeRefresh.setOnRefreshListener {
-                lifecycleScope.launch {
-                    viewModel.refresh()
-                }
-                binding.swipeRefresh.isRefreshing = false
-            }*/
-            return binding.root
+        return binding.root
     }
 
     private fun configureCandleStickChart(binding: FragmentStockSymbolBinding) {

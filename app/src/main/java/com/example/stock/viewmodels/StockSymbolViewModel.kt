@@ -1,18 +1,16 @@
 package com.example.stock.viewmodels
 
 import android.app.Application
-import android.util.Log
-import android.util.Log.ERROR
 import androidx.lifecycle.*
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.Observer
+import com.example.stock.database.getDatabase
 import com.example.stock.domain.Article
 import com.example.stock.domain.TickerQuote
 import com.example.stock.network.*
+import com.example.stock.repository.TickerRepository
 import com.github.mikephil.charting.data.CandleData
-import com.github.mikephil.charting.data.CandleDataSet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.channels.ticker
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.lang.IllegalArgumentException
@@ -20,6 +18,8 @@ import java.util.*
 
 class StockSymbolViewModel(app: Application, val tickerName: String) : AndroidViewModel(app) {
 
+    private val database = getDatabase(app)
+    private val tickerRepository = TickerRepository(database)
 
     private val _currentQuote : MutableLiveData<TickerQuote> = MutableLiveData()
     val currentQuote: LiveData<TickerQuote>
@@ -37,6 +37,10 @@ class StockSymbolViewModel(app: Application, val tickerName: String) : AndroidVi
     val navigateToArticle : LiveData<Article>
         get() = _navigateToArticle
 
+    private val _isFollowingTicker : MutableLiveData<Boolean> = MutableLiveData()
+    val isFollowingTicker: LiveData<Boolean>
+        get() = _isFollowingTicker
+
     init {
         viewModelScope.launch {
             refresh()
@@ -50,6 +54,10 @@ class StockSymbolViewModel(app: Application, val tickerName: String) : AndroidVi
                 val price = Network.tickers.getQuote(tickerName)
                 _currentQuote.postValue(price.body()?.asDomainModel(tickerName))
 
+                _isFollowingTicker.postValue(
+                    tickerRepository.isFollowing(tickerName)
+                )
+
                 // candle stick for the last 30 days
                 val cal = Calendar.getInstance()
                 cal.add(Calendar.DAY_OF_YEAR, -30)
@@ -61,9 +69,8 @@ class StockSymbolViewModel(app: Application, val tickerName: String) : AndroidVi
 
                 // news about the current ticker
                 val articleResponse = Network.tickers.getCompanyNews(tickerName, "2021-07-01", "2021-07-07")
-                val companyArticles = companyArticleAdapter.fromJson(articleResponse.body()?.string())
-                val domainArticles = CompanyArticleResponseContainer(companyArticles!!).asDomainModel()
-                _tickerArticles.postValue(domainArticles.toList())
+                val companyArticles = NETWORK_COMPANY_ARTICLE_ADAPTER.fromJson(articleResponse.body()?.string())?.asDomainModel()
+                _tickerArticles.postValue(companyArticles)
 
             }
             catch(e: Exception)
@@ -83,6 +90,15 @@ class StockSymbolViewModel(app: Application, val tickerName: String) : AndroidVi
     override fun onCleared() {
         super.onCleared()
         viewModelScope.cancel()
+    }
+
+    fun followTicker() {
+        viewModelScope.launch {
+            _currentQuote.value?.let {
+                val following = tickerRepository.toggleFollow(it)
+                _isFollowingTicker.postValue(following)
+            }
+        }
     }
 
     class Factory(val app: Application, val ticker: String) : ViewModelProvider.Factory {

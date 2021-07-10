@@ -7,6 +7,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.annotation.LayoutRes
 import androidx.databinding.DataBindingUtil
@@ -20,8 +21,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.stock.R
 import com.example.stock.databinding.FragmentStockMainBinding
 import com.example.stock.databinding.NewsItemBinding
+import com.example.stock.databinding.TickerItemBinding
 import com.example.stock.domain.Article
+import com.example.stock.domain.TickerQuote
 import com.example.stock.viewmodels.StockMainViewModel
+import com.robinhood.ticker.TickerView
 
 
 class StockMainFragment : Fragment() {
@@ -30,8 +34,12 @@ class StockMainFragment : Fragment() {
         val activity = requireNotNull(this.activity) {
             "You can only access the viewmodel after onViewCreated()"
         }
-        ViewModelProvider(this, StockMainViewModel.Factory(activity.application)).get(StockMainViewModel::class.java)
+        ViewModelProvider(this, StockMainViewModel.Factory(activity.application)).get(
+            StockMainViewModel::class.java
+        )
     }
+
+    private var recyclerAdapter: TickerQuoteAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,35 +54,106 @@ class StockMainFragment : Fragment() {
             inflater,
             R.layout.fragment_stock_main,
             container,
-            false)
+            false
+        )
 
         binding.lifecycleOwner = this
         binding.viewModel = viewModel
 
-        viewModel.navigateToArticleEvent.observe( viewLifecycleOwner, Observer { article ->
-            article?.let {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(article.url))
-                startActivity(intent)
-                viewModel.navigateToArticleComplete()
-            }
+        recyclerAdapter = TickerQuoteAdapter(TickerClick {
+            viewModel.searchTicker(it.name)
         })
+        binding.followingList.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = recyclerAdapter
+        }
 
-        viewModel.tickerNotFoundEvent.observe( viewLifecycleOwner, Observer {
-            it?.let{
-                Toast.makeText(context, viewModel.tickerNotFoundEvent.value + " Not Found", Toast.LENGTH_LONG).show()
+        binding.symbolSearchTextView.setAdapter(
+            ArrayAdapter<String>(
+                requireContext(),
+                R.layout.support_simple_spinner_dropdown_item
+            )
+        )
+
+        viewModel.tickerNotFoundEvent.observe(viewLifecycleOwner, Observer {
+            it?.let {
+                Toast.makeText(
+                    context,
+                    viewModel.tickerNotFoundEvent.value + " Not Found",
+                    Toast.LENGTH_LONG
+                ).show()
                 viewModel.tickerNotFoundEventComplete()
             }
         })
-        viewModel.navigateToTickerEvent.observe( viewLifecycleOwner, Observer {
-            it?.let{
-                findNavController().navigate(StockMainFragmentDirections.actionStockMainFragmentToStockSymbolFragment(
-                    viewModel.navigateToTickerEvent.value!!
-                ))
+
+        viewModel.navigateToTickerEvent.observe(viewLifecycleOwner, Observer {
+            it?.let {
+                findNavController().navigate(
+                    StockMainFragmentDirections.actionStockMainFragmentToStockSymbolFragment(
+                        viewModel.navigateToTickerEvent.value!!
+                    )
+                )
                 viewModel.navigateToTickerComplete()
+            }
+        })
+
+        viewModel.refreshCompleteEvent.observe(viewLifecycleOwner, Observer {
+            if(it == true){
+                binding.swipeRefresh.isRefreshing = false
+                viewModel.refreshEventFinished()
             }
         })
 
         return binding.root
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+    }
+
+    class TickerClick(val block: (TickerQuote) -> Unit) {
+        fun onClick(ticker: TickerQuote) = block(ticker)
+    }
+
+    class TickerQuoteAdapter(val callBack: TickerClick) :
+        ListAdapter<TickerQuote, TickerQuoteViewHolder>(TickerDiffCallback()) {
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TickerQuoteViewHolder {
+            val binding: TickerItemBinding = DataBindingUtil.inflate(
+                LayoutInflater.from(parent.context),
+                TickerQuoteViewHolder.LAYOUT,
+                parent,
+                false
+            )
+            return TickerQuoteViewHolder(binding)
+        }
+
+        override fun onBindViewHolder(holder: TickerQuoteViewHolder, position: Int) {
+            holder.viewDataBinding.also {
+                it.ticker = getItem(position)
+                it.tickerCallBack = callBack
+                it.executePendingBindings()
+            }
+        }
+
+        class TickerDiffCallback :
+            DiffUtil.ItemCallback<TickerQuote>() {
+            override fun areItemsTheSame(oldItem: TickerQuote, newItem: TickerQuote): Boolean {
+                return oldItem === newItem
+            }
+
+            override fun areContentsTheSame(oldItem: TickerQuote, newItem: TickerQuote): Boolean {
+                return oldItem.name == newItem.name
+            }
+
+        }
+    }
+
+    class TickerQuoteViewHolder(val viewDataBinding: TickerItemBinding) :
+        RecyclerView.ViewHolder(viewDataBinding.root) {
+        companion object {
+            @LayoutRes
+            val LAYOUT = R.layout.ticker_item
+        }
+    }
 }

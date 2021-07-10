@@ -9,11 +9,6 @@
             type="com.example.stock.viewmodels.StockSymbolViewModel" />
 
     </data>
-    <!--<androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swipeRefresh"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        >-->
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -164,9 +159,19 @@
             app:layout_constraintTop_toBottomOf="@+id/lowText"
             tools:listitem="@layout/news_item" />
 
+        <ImageButton
+            android:id="@+id/followButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:onClick="@{() -> viewModel.followTicker()}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            following="@{viewModel.isFollowingTicker}"
+            />
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <!--</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>-->
 
 </layout>

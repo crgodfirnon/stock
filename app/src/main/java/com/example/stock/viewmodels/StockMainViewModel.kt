@@ -3,9 +3,14 @@ package com.example.stock.viewmodels
 import android.app.Application
 import android.view.View
 import androidx.lifecycle.*
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.stock.database.TickersDatabase
+import com.example.stock.database.getDatabase
 import com.example.stock.domain.Article
+import com.example.stock.domain.Ticker
 import com.example.stock.network.Network
 import com.example.stock.network.asDomainModel
+import com.example.stock.repository.TickerRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -14,23 +19,17 @@ import java.lang.IllegalArgumentException
 
 class StockMainViewModel(application: Application) : AndroidViewModel(application) {
 
-    enum class ArticleApiStatus { LOADING, ERROR, DONE }
+    private val database = getDatabase(application)
+    private val tickerRepository = TickerRepository(database)
 
-    private val _articleApiStatus = MutableLiveData<ArticleApiStatus>()
-    val articleApiStatus: LiveData<ArticleApiStatus>
-        get() = _articleApiStatus
+    val availableTickers = tickerRepository.availableTickers
+    val followedTickerQuotes = tickerRepository.followedTickerQuotes
 
-    private val _articles: MutableLiveData<List<Article>> = MutableLiveData()
-    val articles: LiveData<List<Article>>
-        get() = _articles
-
-    private val _navigateToArticleEvent : MutableLiveData<Article?> = MutableLiveData()
-    val navigateToArticleEvent : LiveData<Article?>
-        get() = _navigateToArticleEvent
-
-    private val _searchButtonEvent: MutableLiveData<Boolean> = MutableLiveData()
-    val searchButtonEvent: LiveData<Boolean>
-        get() = _searchButtonEvent
+    init {
+        viewModelScope.launch {
+            tickerRepository.refreshFollowedTickerQuotes()
+        }
+    }
 
     private val _tickerNotFoundEvent: MutableLiveData<String> = MutableLiveData()
     val tickerNotFoundEvent: LiveData<String>
@@ -40,59 +39,44 @@ class StockMainViewModel(application: Application) : AndroidViewModel(applicatio
     val navigateToTickerEvent: LiveData<String>
         get() = _navigateToTickerEvent
 
-    init {
-
-        viewModelScope.launch {
-            //refreshArticles()
-        }
-    }
+    private val _refreshCompleteEvent: MutableLiveData<Boolean> = MutableLiveData()
+    val refreshCompleteEvent: LiveData<Boolean>
+        get() = _refreshCompleteEvent
 
     override fun onCleared() {
         super.onCleared()
         viewModelScope.cancel()
     }
 
-    fun searchButtonEventComplete() {
-        _searchButtonEvent.value = false
-    }
-
     fun tickerNotFoundEventComplete() {
         _tickerNotFoundEvent.value = null
     }
 
-    private suspend fun refreshArticles() {
-        withContext(Dispatchers.IO) {
-            try {
-                _articleApiStatus.postValue(ArticleApiStatus.LOADING)
-                val articlesResponse = Network.articles.getArticles(query = "stock market")
-                _articleApiStatus.postValue(ArticleApiStatus.DONE)
-                _articles.postValue(articlesResponse.body()?.asDomainModel()?.toList())
-            }
-            catch(e: Exception){
-                _articleApiStatus.postValue(ArticleApiStatus.ERROR)
-                _articles.postValue(emptyList())
-            }
-        }
-    }
-
-    fun onArticleClicked(article: Article){
-        _navigateToArticleEvent.value = article
-    }
-
-    fun navigateToArticleComplete(){
-        _navigateToArticleEvent.value = null
-    }
 
     fun navigateToTickerComplete(){
         _navigateToTickerEvent.value = null
     }
 
     fun searchTicker(ticker: String) {
-        // check that this ticker exists
-        //_tickerNotFoundEvent.value = ticker
-
-        _navigateToTickerEvent.value = ticker
+        if (availableTickers.value?.find{ it.symbol == ticker} != null){
+            _navigateToTickerEvent.value = ticker
+        }
+        else {
+            _tickerNotFoundEvent.value = ticker
+        }
     }
+
+    fun refreshFollowedTickers() {
+        viewModelScope.launch {
+            tickerRepository.refreshFollowedTickerQuotes()
+            _refreshCompleteEvent.postValue(true)
+        }
+    }
+
+    fun refreshEventFinished(){
+        _refreshCompleteEvent.value = false
+    }
+
 
     class Factory(val app: Application) : ViewModelProvider.Factory {
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
