@@ -30,6 +30,7 @@ import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.CandleData
 import com.github.mikephil.charting.data.CandleDataSet
 import com.github.mikephil.charting.data.CandleEntry
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 
 
@@ -86,6 +87,18 @@ class StockSymbolFragment : Fragment() {
             layoutManager = LinearLayoutManager(context)
             adapter = viewModelAdapter
         }
+
+        viewModel.followingEvent.observe(viewLifecycleOwner, Observer {
+            it?.let {
+                val displayText: String = if (it){
+                    "Following ${viewModel.tickerName}"
+                } else {
+                    "Unfollowed ${viewModel.tickerName}"
+                }
+                Snackbar.make(binding.root, displayText, Snackbar.LENGTH_SHORT).show()
+                viewModel.followingEventComplete()
+            }
+        })
 
         return binding.root
     }

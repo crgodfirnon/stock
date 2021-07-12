@@ -22,8 +22,10 @@ class RefreshDataWorker(appContext: Context, params: WorkerParameters) : Corouti
         val repository = TickerRepository(database)
 
         return try {
-            repository.refreshAvailableTickers()
-            Result.success()
+            if (repository.refreshAvailableTickers() == TickerRepository.OperationResult.Success)
+                Result.success()
+            else
+                Result.retry()
         } catch(e: Exception){
             Result.retry()
         }

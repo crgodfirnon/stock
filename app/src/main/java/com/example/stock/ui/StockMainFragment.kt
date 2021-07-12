@@ -25,6 +25,7 @@ import com.example.stock.databinding.TickerItemBinding
 import com.example.stock.domain.Article
 import com.example.stock.domain.TickerQuote
 import com.example.stock.viewmodels.StockMainViewModel
+import com.google.android.material.snackbar.Snackbar
 import com.robinhood.ticker.TickerView
 
 
@@ -41,6 +42,8 @@ class StockMainFragment : Fragment() {
 
     private var recyclerAdapter: TickerQuoteAdapter? = null
 
+    private lateinit var binding: FragmentStockMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
     }
@@ -50,7 +53,7 @@ class StockMainFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         // Setting up the binding
-        val binding: FragmentStockMainBinding = DataBindingUtil.inflate(
+        binding = DataBindingUtil.inflate(
             inflater,
             R.layout.fragment_stock_main,
             container,
@@ -75,32 +78,24 @@ class StockMainFragment : Fragment() {
             )
         )
 
-        viewModel.tickerNotFoundEvent.observe(viewLifecycleOwner, Observer {
-            it?.let {
-                Toast.makeText(
-                    context,
-                    viewModel.tickerNotFoundEvent.value + " Not Found",
-                    Toast.LENGTH_LONG
-                ).show()
-                viewModel.tickerNotFoundEventComplete()
+        viewModel.tickerEvent.observe(viewLifecycleOwner, Observer {
+            when(it){
+                is StockMainViewModel.TickerInfo.RefreshComplete -> {
+                    handleRefreshComplete()
+                }
+                is StockMainViewModel.TickerInfo.TickerSearch -> {
+                    handleTickerSearch(it.ticker)
+                }
+                is StockMainViewModel.TickerInfo.TickerNotFound -> {
+                    handleTickerNotFound(it.ticker)
+                }
             }
         })
 
-        viewModel.navigateToTickerEvent.observe(viewLifecycleOwner, Observer {
-            it?.let {
-                findNavController().navigate(
-                    StockMainFragmentDirections.actionStockMainFragmentToStockSymbolFragment(
-                        viewModel.navigateToTickerEvent.value!!
-                    )
-                )
-                viewModel.navigateToTickerComplete()
-            }
-        })
-
-        viewModel.refreshCompleteEvent.observe(viewLifecycleOwner, Observer {
-            if(it == true){
-                binding.swipeRefresh.isRefreshing = false
-                viewModel.refreshEventFinished()
+        viewModel.dataState.observe(viewLifecycleOwner, Observer {
+            if (it == StockMainViewModel.DataState.Error){
+                Snackbar.make(binding.root, "Network Error - Try Again Later", Snackbar.LENGTH_LONG).show()
+                viewModel.dataStateEventHandled()
             }
         })
 
@@ -109,6 +104,29 @@ class StockMainFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+    }
+
+    private fun handleRefreshComplete(){
+        binding.swipeRefresh.isRefreshing = false
+        viewModel.refreshEventFinished()
+    }
+
+    private fun handleTickerSearch(ticker: String) {
+        findNavController().navigate(
+            StockMainFragmentDirections.actionStockMainFragmentToStockSymbolFragment(
+                ticker
+            )
+        )
+        viewModel.navigateToTickerComplete()
+    }
+
+    private fun handleTickerNotFound(ticker: String){
+        Snackbar.make(
+            binding.root,
+            "$ticker Not Found",
+            Snackbar.LENGTH_LONG
+        ).show()
+        viewModel.tickerNotFoundEventComplete()
     }
 
     class TickerClick(val block: (TickerQuote) -> Unit) {

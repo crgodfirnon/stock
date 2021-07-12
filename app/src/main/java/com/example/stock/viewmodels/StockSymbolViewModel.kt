@@ -1,6 +1,7 @@
 package com.example.stock.viewmodels
 
 import android.app.Application
+import android.widget.Toast
 import androidx.lifecycle.*
 import androidx.lifecycle.Observer
 import com.example.stock.database.getDatabase
@@ -41,6 +42,10 @@ class StockSymbolViewModel(app: Application, val tickerName: String) : AndroidVi
     val isFollowingTicker: LiveData<Boolean>
         get() = _isFollowingTicker
 
+    private val _followingEvent: MutableLiveData<Boolean> = MutableLiveData()
+    val followingEvent: LiveData<Boolean>
+        get() = _followingEvent
+
     init {
         viewModelScope.launch {
             refresh()
@@ -49,32 +54,28 @@ class StockSymbolViewModel(app: Application, val tickerName: String) : AndroidVi
 
     suspend fun refresh() {
         withContext(Dispatchers.IO){
-            try{
-                // current quote data
-                val price = Network.tickers.getQuote(tickerName)
-                _currentQuote.postValue(price.body()?.asDomainModel(tickerName))
 
-                _isFollowingTicker.postValue(
-                    tickerRepository.isFollowing(tickerName)
-                )
-
-                // candle stick for the last 30 days
-                val cal = Calendar.getInstance()
-                cal.add(Calendar.DAY_OF_YEAR, -30)
-                val fromString = (cal.timeInMillis/1000).toString()
-
-                val candleData = Network.tickers.getCandleStickData(
-                    tickerName, fromString, (System.currentTimeMillis()/1000).toString())
-                _candleStickData.postValue(CandleData(candleData.body()?.asDomainModel()))
-
-                // news about the current ticker
-                val articleResponse = Network.tickers.getCompanyNews(tickerName, "2021-07-01", "2021-07-07")
-                val companyArticles = NETWORK_COMPANY_ARTICLE_ADAPTER.fromJson(articleResponse.body()?.string())?.asDomainModel()
-                _tickerArticles.postValue(companyArticles)
-
+            // current quote data
+            when(val result = tickerRepository.getTickerQuote(tickerName)){
+                is TickerRepository.OperationResult.GetQuoteResult->
+                    _currentQuote.postValue(result.quote)
             }
-            catch(e: Exception)
-            {
+
+            // is the user following this ticker?
+            _isFollowingTicker.postValue(
+                tickerRepository.isFollowing(tickerName)
+            )
+
+            // candle stick for the last 30 days
+            when(val stickDataResult = tickerRepository.getCandleStickData(tickerName)){
+                is TickerRepository.OperationResult.GetCandleStickData->
+                    _candleStickData.postValue(stickDataResult.data)
+            }
+
+            // news about the current ticker
+            when(val articlesResult = tickerRepository.getTickerNews(tickerName)){
+                is TickerRepository.OperationResult.GetTickerNewsResult->
+                    _tickerArticles.postValue(articlesResult.articles)
             }
         }
     }
@@ -87,6 +88,10 @@ class StockSymbolViewModel(app: Application, val tickerName: String) : AndroidVi
         _navigateToArticle.value = null
     }
 
+    fun followingEventComplete() {
+        _followingEvent.value = null
+    }
+
     override fun onCleared() {
         super.onCleared()
         viewModelScope.cancel()
@@ -94,10 +99,9 @@ class StockSymbolViewModel(app: Application, val tickerName: String) : AndroidVi
 
     fun followTicker() {
         viewModelScope.launch {
-            _currentQuote.value?.let {
-                val following = tickerRepository.toggleFollow(it)
-                _isFollowingTicker.postValue(following)
-            }
+            val following = tickerRepository.toggleFollow(tickerName).isFollowing
+            _isFollowingTicker.postValue(following)
+            _followingEvent.postValue(following)
         }
     }
 

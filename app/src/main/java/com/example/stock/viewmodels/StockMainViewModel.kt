@@ -13,11 +13,18 @@ import com.example.stock.network.asDomainModel
 import com.example.stock.repository.TickerRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.ticker
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.lang.IllegalArgumentException
 
 class StockMainViewModel(application: Application) : AndroidViewModel(application) {
+
+    enum class DataState{
+        Loading,
+        Done,
+        Error
+    }
 
     private val database = getDatabase(application)
     private val tickerRepository = TickerRepository(database)
@@ -25,23 +32,38 @@ class StockMainViewModel(application: Application) : AndroidViewModel(applicatio
     val availableTickers = tickerRepository.availableTickers
     val followedTickerQuotes = tickerRepository.followedTickerQuotes
 
+    private val _dataState : MutableLiveData<DataState> = MutableLiveData()
+    val dataState: LiveData<DataState>
+        get() = _dataState
+
     init {
         viewModelScope.launch {
-            tickerRepository.refreshFollowedTickerQuotes()
+            if (availableTickers.value == null || availableTickers.value!!.isEmpty()){
+                if (tickerRepository.refreshAvailableTickers() == TickerRepository.OperationResult.Fail){
+                    _dataState.postValue(DataState.Error)
+                    return@launch
+                }
+            }
+
+            _dataState.postValue(DataState.Loading)
+            when(tickerRepository.refreshFollowedTickerQuotes()){
+                is TickerRepository.OperationResult.Success->
+                    _dataState.postValue(DataState.Done)
+                else ->
+                    _dataState.postValue(DataState.Error)
+            }
         }
     }
 
-    private val _tickerNotFoundEvent: MutableLiveData<String> = MutableLiveData()
-    val tickerNotFoundEvent: LiveData<String>
-        get() = _tickerNotFoundEvent
+    sealed class TickerInfo {
+        object RefreshComplete: TickerInfo()
+        data class TickerSearch(val ticker: String) : TickerInfo()
+        data class TickerNotFound(val ticker: String): TickerInfo()
+    }
 
-    private val _navigateToTickerEvent: MutableLiveData<String> = MutableLiveData()
-    val navigateToTickerEvent: LiveData<String>
-        get() = _navigateToTickerEvent
-
-    private val _refreshCompleteEvent: MutableLiveData<Boolean> = MutableLiveData()
-    val refreshCompleteEvent: LiveData<Boolean>
-        get() = _refreshCompleteEvent
+    private val _tickerEvent: MutableLiveData<TickerInfo> = MutableLiveData()
+    val tickerEvent: LiveData<TickerInfo>
+        get() = _tickerEvent
 
     override fun onCleared() {
         super.onCleared()
@@ -49,32 +71,53 @@ class StockMainViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun tickerNotFoundEventComplete() {
-        _tickerNotFoundEvent.value = null
+        _tickerEvent.value = null
     }
 
-
     fun navigateToTickerComplete(){
-        _navigateToTickerEvent.value = null
+        _tickerEvent.value = null
+    }
+
+    fun dataStateEventHandled() {
+        _dataState.value = null
     }
 
     fun searchTicker(ticker: String) {
+        if (availableTickers.value == null || availableTickers.value!!.isEmpty()){
+            viewModelScope.launch {
+                if (tickerRepository.refreshAvailableTickers() == TickerRepository.OperationResult.Fail){
+                    _dataState.value = DataState.Error
+                }
+            }
+        }
+
+        if (availableTickers.value == null || availableTickers.value!!.isEmpty()){
+            return
+        }
+
         if (availableTickers.value?.find{ it.symbol == ticker} != null){
-            _navigateToTickerEvent.value = ticker
+            _tickerEvent.value = TickerInfo.TickerSearch(ticker)
         }
         else {
-            _tickerNotFoundEvent.value = ticker
+            _tickerEvent.value = TickerInfo.TickerNotFound(ticker)
         }
     }
 
     fun refreshFollowedTickers() {
         viewModelScope.launch {
-            tickerRepository.refreshFollowedTickerQuotes()
-            _refreshCompleteEvent.postValue(true)
+            _dataState.postValue(DataState.Loading)
+            when(tickerRepository.refreshFollowedTickerQuotes()){
+                is TickerRepository.OperationResult.Success->
+                    _dataState.postValue(DataState.Done)
+                else->
+                    _dataState.postValue(DataState.Error)
+            }
+            _tickerEvent.postValue(TickerInfo.RefreshComplete)
         }
     }
 
     fun refreshEventFinished(){
-        _refreshCompleteEvent.value = false
+        _tickerEvent.value = null
     }
 
 
