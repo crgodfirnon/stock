@@ -75,7 +75,7 @@ class StockSymbolViewModel(app: Application, val tickerName: String) : AndroidVi
             // news about the current ticker
             when(val articlesResult = tickerRepository.getTickerNews(tickerName)){
                 is TickerRepository.OperationResult.GetTickerNewsResult->
-                    _tickerArticles.postValue(articlesResult.articles)
+                    _tickerArticles.postValue(articlesResult.articles.take(15))
             }
         }
     }

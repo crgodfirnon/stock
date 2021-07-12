@@ -13,6 +13,7 @@ import com.example.stock.network.*
 import com.github.mikephil.charting.data.CandleData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
 import java.util.*
 
 class TickerRepository(private val database: TickersDatabase) {
@@ -68,10 +69,20 @@ class TickerRepository(private val database: TickersDatabase) {
         }
     }
 
+    fun Date.toString(format: String, locale: Locale = Locale.getDefault()) : String {
+        val formatter = SimpleDateFormat(format, locale)
+        return formatter.format(this)
+    }
+
     suspend fun getTickerNews(ticker: String): OperationResult {
         return withContext(Dispatchers.IO){
             try{
-                val articleResponse = Network.tickers.getCompanyNews(ticker,"2021-07-01", "2021-07-07")
+                val cal = Calendar.getInstance()
+                val today = Calendar.getInstance().time.toString("YYYY-MM-dd")
+                cal.add(Calendar.DAY_OF_YEAR, -30)
+                val from = cal.time.toString("YYYY-MM-dd")
+
+                val articleResponse = Network.tickers.getCompanyNews(ticker,from, today)
                 if (articleResponse.isSuccessful){
                     val companyArticles = NETWORK_COMPANY_ARTICLE_ADAPTER.fromJson(articleResponse.body()?.string())
                     if (companyArticles != null) {
