@@ -19,6 +19,8 @@ import java.util.*
 
 class StockSymbolViewModel(app: Application, val tickerName: String) : AndroidViewModel(app) {
 
+    enum class DataState {Loading, Done, Error}
+
     private val database = getDatabase(app)
     private val tickerRepository = TickerRepository(database)
 
@@ -46,6 +48,10 @@ class StockSymbolViewModel(app: Application, val tickerName: String) : AndroidVi
     val followingEvent: LiveData<Boolean>
         get() = _followingEvent
 
+    private val _dataState: MutableLiveData<DataState> = MutableLiveData()
+    val dataState: LiveData<DataState>
+        get() = _dataState
+
     init {
         viewModelScope.launch {
             refresh()
@@ -54,6 +60,8 @@ class StockSymbolViewModel(app: Application, val tickerName: String) : AndroidVi
 
     suspend fun refresh() {
         withContext(Dispatchers.IO){
+
+            _dataState.postValue(DataState.Loading)
 
             // current quote data
             when(val result = tickerRepository.getTickerQuote(tickerName)){
@@ -77,6 +85,8 @@ class StockSymbolViewModel(app: Application, val tickerName: String) : AndroidVi
                 is TickerRepository.OperationResult.GetTickerNewsResult->
                     _tickerArticles.postValue(articlesResult.articles.take(15))
             }
+
+            _dataState.postValue(DataState.Done)
         }
     }
 
@@ -90,6 +100,10 @@ class StockSymbolViewModel(app: Application, val tickerName: String) : AndroidVi
 
     fun followingEventComplete() {
         _followingEvent.value = null
+    }
+
+    fun dataStateEventFinished() {
+        _dataState.value = null
     }
 
     override fun onCleared() {

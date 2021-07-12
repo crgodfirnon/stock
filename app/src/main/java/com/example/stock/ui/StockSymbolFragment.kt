@@ -2,11 +2,13 @@ package com.example.stock.ui
 
 import android.content.Intent
 import android.graphics.Color
-import android.graphics.Paint
 import android.net.Uri
+import android.opengl.Visibility
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.INVISIBLE
+import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.view.animation.OvershootInterpolator
 import androidx.annotation.LayoutRes
@@ -14,10 +16,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import androidx.navigation.ui.NavigationUI
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
@@ -28,12 +27,7 @@ import com.example.stock.databinding.NewsItemBinding
 import com.example.stock.domain.Article
 import com.example.stock.viewmodels.StockSymbolViewModel
 import com.github.mikephil.charting.components.XAxis
-import com.github.mikephil.charting.components.YAxis
-import com.github.mikephil.charting.data.CandleData
-import com.github.mikephil.charting.data.CandleDataSet
-import com.github.mikephil.charting.data.CandleEntry
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.launch
 
 
 class StockSymbolFragment : Fragment() {
@@ -50,6 +44,8 @@ class StockSymbolFragment : Fragment() {
 
     private var viewModelAdapter: NewsArticleAdapter? = null
 
+    private lateinit var binding: FragmentStockSymbolBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
     }
@@ -59,7 +55,7 @@ class StockSymbolFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
 
-        val binding : FragmentStockSymbolBinding = DataBindingUtil.inflate(
+        binding = DataBindingUtil.inflate(
             inflater,
             R.layout.fragment_stock_symbol,
             container,
@@ -67,6 +63,8 @@ class StockSymbolFragment : Fragment() {
 
         binding.lifecycleOwner = this
         binding.viewModel = viewModel
+
+        setVisibilityHelper(INVISIBLE)
 
         // configure ticker view
         binding.tickerCurrentPrice.animationInterpolator = OvershootInterpolator()
@@ -102,7 +100,44 @@ class StockSymbolFragment : Fragment() {
             }
         })
 
+        viewModel.dataState.observe(viewLifecycleOwner, Observer {
+            it?.let{
+                updateViews(it)
+            }
+        })
+
         return binding.root
+    }
+
+    private fun updateViews(dataState: StockSymbolViewModel.DataState) {
+        when(dataState){
+            StockSymbolViewModel.DataState.Loading -> {
+                binding.loadingImage.visibility = VISIBLE
+                setVisibilityHelper(INVISIBLE)
+            }
+            StockSymbolViewModel.DataState.Done -> {
+                binding.loadingImage.visibility = INVISIBLE
+                setVisibilityHelper(VISIBLE)
+            }
+        }
+        viewModel.dataStateEventFinished()
+    }
+
+    private fun setVisibilityHelper(option: Int) {
+        binding.tickerNameTextView.visibility = option
+        binding.tickerCurrentPrice.visibility = option
+        binding.candleStickChart.visibility = option
+        binding.openText.visibility = option
+        binding.openValue.visibility = option
+        binding.highText.visibility = option
+        binding.highValue.visibility = option
+        binding.lowText.visibility = option
+        binding.lowValue.visibility = option
+        binding.prevCloseText.visibility = option
+        binding.prevCloseValue.visibility = option
+        binding.movementText.visibility = option
+        binding.tickerNews.visibility = option
+        binding.followButton.visibility = option
     }
 
     private fun configureCandleStickChart(binding: FragmentStockSymbolBinding) {
