@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/stockMainFragment"
         android:name="com.example.stock.ui.StockMainFragment"
-        android:label="fragment_stock_main"
+        android:label="Stock"
         tools:layout="@layout/fragment_stock_main" >
         <action
             android:id="@+id/action_stockMainFragment_to_stockSymbolFragment"
@@ -17,7 +17,7 @@
     <fragment
         android:id="@+id/stockSymbolFragment"
         android:name="com.example.stock.ui.StockSymbolFragment"
-        android:label="fragment_stock_symbol"
+        android:label="Ticker Lookup"
         tools:layout="@layout/fragment_stock_symbol" >
         <argument
             android:name="tickerName"
