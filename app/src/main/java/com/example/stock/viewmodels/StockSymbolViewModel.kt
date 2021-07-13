@@ -52,6 +52,10 @@ class StockSymbolViewModel(app: Application, val tickerName: String) : AndroidVi
     val dataState: LiveData<DataState>
         get() = _dataState
 
+    private val _newsState: MutableLiveData<DataState> = MutableLiveData()
+    val newsState: LiveData<DataState>
+        get() = _newsState
+
     init {
         viewModelScope.launch {
             refresh()
@@ -63,27 +67,42 @@ class StockSymbolViewModel(app: Application, val tickerName: String) : AndroidVi
 
             _dataState.postValue(DataState.Loading)
 
-            // current quote data
-            when(val result = tickerRepository.getTickerQuote(tickerName)){
-                is TickerRepository.OperationResult.GetQuoteResult->
-                    _currentQuote.postValue(result.quote)
-            }
-
             // is the user following this ticker?
             _isFollowingTicker.postValue(
                 tickerRepository.isFollowing(tickerName)
             )
 
+            // current quote data
+            when(val result = tickerRepository.getTickerQuote(tickerName)){
+                is TickerRepository.OperationResult.GetQuoteResult->
+                    _currentQuote.postValue(result.quote)
+                is TickerRepository.OperationResult.Fail-> {
+                    _dataState.postValue(DataState.Error)
+                    return@withContext
+                }
+            }
+
             // candle stick for the last 30 days
             when(val stickDataResult = tickerRepository.getCandleStickData(tickerName)){
                 is TickerRepository.OperationResult.GetCandleStickData->
                     _candleStickData.postValue(stickDataResult.data)
+                is TickerRepository.OperationResult.Fail->{
+                    _dataState.postValue(DataState.Error)
+                    return@withContext
+                }
             }
 
             // news about the current ticker
+            _newsState.postValue(DataState.Loading)
             when(val articlesResult = tickerRepository.getTickerNews(tickerName)){
-                is TickerRepository.OperationResult.GetTickerNewsResult->
+                is TickerRepository.OperationResult.GetTickerNewsResult->{
                     _tickerArticles.postValue(articlesResult.articles.take(15))
+                    _newsState.postValue(DataState.Done)
+                }
+                is TickerRepository.OperationResult.Fail -> {
+                    _newsState.postValue(DataState.Error)
+                    return@withContext
+                }
             }
 
             _dataState.postValue(DataState.Done)
@@ -104,6 +123,10 @@ class StockSymbolViewModel(app: Application, val tickerName: String) : AndroidVi
 
     fun dataStateEventFinished() {
         _dataState.value = null
+    }
+
+    fun newsStateHandled() {
+        _newsState.value = null
     }
 
     override fun onCleared() {

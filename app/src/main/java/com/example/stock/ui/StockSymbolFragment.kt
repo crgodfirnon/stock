@@ -106,6 +106,27 @@ class StockSymbolFragment : Fragment() {
             }
         })
 
+        viewModel.newsState.observe(viewLifecycleOwner, Observer {
+            when(it){
+                StockSymbolViewModel.DataState.Error-> {
+                    binding.newsStatusText.text = "Network Error - Unable to retrieve news"
+                    binding.newsStatusText.visibility = VISIBLE
+                    binding.tickerNews.visibility = INVISIBLE
+                }
+                StockSymbolViewModel.DataState.Done -> {
+                    if (viewModel.tickerArticles.value.isNullOrEmpty()){
+                        binding.tickerNews.visibility = INVISIBLE
+                        binding.newsStatusText.text = "No News Found"
+                        binding.newsStatusText.visibility = VISIBLE
+                    }
+                }
+                null -> {
+                    return@Observer
+                }
+            }
+            viewModel.newsStateHandled()
+        })
+
         return binding.root
     }
 
@@ -118,6 +139,13 @@ class StockSymbolFragment : Fragment() {
             StockSymbolViewModel.DataState.Done -> {
                 binding.loadingImage.visibility = INVISIBLE
                 setVisibilityHelper(VISIBLE)
+            }
+            StockSymbolViewModel.DataState.Error -> {
+                binding.loadingImage.visibility = INVISIBLE
+                setVisibilityHelper(INVISIBLE)
+                binding.newsStatusText.visibility = INVISIBLE
+                binding.networkErrorImage.visibility = VISIBLE
+                Snackbar.make(binding.root, "Network Error - Unable to Retrieve Data", Snackbar.LENGTH_LONG).show()
             }
         }
         viewModel.dataStateEventFinished()
@@ -152,6 +180,7 @@ class StockSymbolFragment : Fragment() {
         binding.candleStickChart.axisLeft.setDrawAxisLine(false)
         binding.candleStickChart.axisRight.setDrawAxisLine(false)
         binding.candleStickChart.legend.isEnabled = false
+        binding.candleStickChart.xAxis.setDrawLabels(false)
     }
 
     class ArticleClick(val block: (Article) -> Unit) {

@@ -24,7 +24,7 @@ class TickerRepository(private val database: TickersDatabase) {
 
         data class ToggleFollowResult(val isFollowing: Boolean) : OperationResult()
         data class GetQuoteResult(val quote: TickerQuote) : OperationResult()
-        data class GetCandleStickData(val data: CandleData) : OperationResult()
+        data class GetCandleStickData(val data: CandleData?) : OperationResult()
         data class GetTickerNewsResult(val articles: List<Article>) : OperationResult()
     }
 
@@ -55,7 +55,7 @@ class TickerRepository(private val database: TickersDatabase) {
                 if (candleData.isSuccessful){
                     val domainData = candleData.body()?.asDomainModel()
                     if (domainData == null)
-                        return@withContext OperationResult.Fail
+                        return@withContext OperationResult.GetCandleStickData(null)
                     else
                         return@withContext OperationResult.GetCandleStickData(CandleData(domainData))
                 }
