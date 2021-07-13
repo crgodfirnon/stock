@@ -102,7 +102,7 @@ class TickerRepository(private val database: TickersDatabase) {
         }
     }
 
-    suspend fun toggleFollow(ticker: String): OperationResult.ToggleFollowResult{
+    suspend fun toggleFollow(ticker: String): OperationResult{
         return withContext(Dispatchers.IO){
             val dbTickerQuote = database.followedTickersDao.getTicker(ticker)
             // we are currently following this ticker, so just unfollow and return

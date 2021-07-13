@@ -136,9 +136,13 @@ class StockSymbolViewModel(app: Application, val tickerName: String) : AndroidVi
 
     fun followTicker() {
         viewModelScope.launch {
-            val following = tickerRepository.toggleFollow(tickerName).isFollowing
-            _isFollowingTicker.postValue(following)
-            _followingEvent.postValue(following)
+            val following = tickerRepository.toggleFollow(tickerName)
+            when(following){
+                is TickerRepository.OperationResult.ToggleFollowResult-> {
+                    _isFollowingTicker.postValue(following.isFollowing)
+                    _followingEvent.postValue(following.isFollowing)
+                }
+            }
         }
     }
 
