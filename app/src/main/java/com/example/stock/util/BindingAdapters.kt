@@ -41,9 +41,7 @@ fun bindAutoCompleteTextView(autoCompleteTextView: AutoCompleteTextView, data: L
     val adapter = autoCompleteTextView.adapter as ArrayAdapter<String>
     adapter.clear()
     data?.let{
-        it.forEach { ticker ->
-            adapter.add(ticker.symbol)
-        }
+        adapter.addAll(*data.map{it.symbol}.toTypedArray())
     }
 }
 
